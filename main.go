@@ -41,17 +41,6 @@ func main() {
 }
 
 func printPacketInfo(packet gopacket.Packet, handle *pcap.Handle) {
-	// ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
-	// if ethernetLayer != nil {
-	// 	fmt.Println("Ethernet layer detected.")
-	// 	ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
-	// 	fmt.Println("Source MAC: ", ethernetPacket.SrcMAC)
-	// 	fmt.Println("Destination MAC: ", ethernetPacket.DstMAC)
-	// 	fmt.Println("Ethernet type: ", ethernetPacket.EthernetType)
-	// 	fmt.Println("Ethernet type: ", ethernetPacket.Contents)
-	// 	fmt.Println("Ethernet type: ", ethernetPacket.Payload)
-	// 	fmt.Println()
-	// }
 	ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
 	if ethernetLayer != nil {
 		ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
