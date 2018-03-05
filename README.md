@@ -14,7 +14,3 @@ go build main.go
 #例如
 ./main -i eth0
 ```
-
-### ps
-
-未完成...
