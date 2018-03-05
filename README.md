@@ -8,7 +8,7 @@
 
 ```bash
 git clone https://github.com/hammerorz/pppoe-hijack-go.git
-cd pppoe
+cd pppoe-hijack-go
 go build main.go
 ./main -i 网卡
 #例如
