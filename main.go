@@ -27,7 +27,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&device, "i", "", "netword interface")
+	flag.StringVar(&device, "i", "", "network interface")
 	flag.Parse()
 	// Open device
 	handle, err = pcap.OpenLive(device, snapshot_len, promiscuous, timeout)
