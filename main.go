@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"log"
@@ -26,7 +27,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&device, "i", "", "network interface")
+	flag.StringVar(&device, "i", "", "netword interface")
 	flag.Parse()
 	// Open device
 	handle, err = pcap.OpenLive(device, snapshot_len, promiscuous, timeout)
@@ -86,6 +87,7 @@ func sendPadoPacket(srcMAC net.HardwareAddr, raw []byte) {
 		payload = append(payload, hostUniq...)
 	}
 	sendPacket(srcMAC, payload, 0x07, 0x00, 0x8863, uint16(len(payload)))
+	fmt.Println("send Pado packet...")
 }
 
 func sendPadsPacket(srcMAC net.HardwareAddr, raw []byte) {
@@ -95,13 +97,14 @@ func sendPadsPacket(srcMAC net.HardwareAddr, raw []byte) {
 		payload = append(payload, hostUniq...)
 	}
 	sendPacket(srcMAC, payload, 0x65, 0x01, 0x8863, uint16(len(payload)))
+	fmt.Println("send Pads packet...")
 }
 
 func padiFindHostUniq(raw []byte) []byte {
 	re, _ := regexp.Compile("\x01\x03")
 	if re.Match(raw) {
 		nIdx := re.FindIndex(raw)[0]
-		nLen := len(raw[nIdx+2:nIdx+4]) * 2
+		nLen := int(binary.BigEndian.Uint16(raw[nIdx+2:nIdx+4]))
 		return append([]byte{0x01, 0x03}, raw[nIdx+2:nIdx+4+nLen]...)
 	}
 	return nil
@@ -109,7 +112,7 @@ func padiFindHostUniq(raw []byte) []byte {
 
 func sendLcpReq(srcMAC net.HardwareAddr, raw []byte) {
 	if raw[8] == 1 {
-		//fmt.Println("Received LCP-Config-Req")
+		fmt.Println("Received LCP-Config-Req")
 		if _, ok := clientMap[string(raw)]; !ok {
 			go sendLcpRejectPacket(srcMAC, raw)
 			go sendLcpReqPacket(srcMAC, raw)
@@ -126,6 +129,7 @@ func sendLcpRejectPacket(srcMAC net.HardwareAddr, body []byte) {
 	raw[8] = 0x04
 	length := len(raw[8:])
 	sendPacket(srcMAC, raw[6:], 0x00, 0x01, 0x8864, uint16(length))
+	fmt.Println("send LCP Reject packet...")
 }
 
 func sendLcpReqPacket(srcMAC net.HardwareAddr, body []byte) {
@@ -134,8 +138,10 @@ func sendLcpReqPacket(srcMAC net.HardwareAddr, body []byte) {
 	defer func() { raw = nil }()
 	raw[9] = 0x01
 	raw[11] = 0x12
-	length := len(append(raw[8:12], []byte("\x01\x04\x05\xc8\x03\x04\xc0\x23\x05\x06\x5e\x63\x0a\xb8\x00\x00\x00\x00")...))
+	raw = append(raw, []byte("\x01\x04\x05\xc8\x03\x04\xc0\x23\x05\x06\x5e\x63\x0a\xb8\x00\x00\x00\x00")...)
+	length := len(raw) - len(raw[0:8])
 	sendPacket(srcMAC, raw[6:8+length], 0x00, 0x01, 0x8864, uint16(length))
+	fmt.Println("send LCP Request packet...")
 }
 
 func sendLcpAckPacket(srcMAC net.HardwareAddr, body []byte) {
@@ -145,6 +151,7 @@ func sendLcpAckPacket(srcMAC net.HardwareAddr, body []byte) {
 	raw[8] = 0x02
 	length := raw[5]
 	sendPacket(srcMAC, raw[6:], 0x00, 0x01, 0x8864, uint16(length))
+	fmt.Println("send LCP Ack packet...")
 }
 
 func getPapInfo(body []byte) {
@@ -174,5 +181,4 @@ func sendPacket(srcMAC net.HardwareAddr, payload []byte, code layers.PPPoECode, 
 		gopacket.Payload(payload),
 	)
 	handle.WritePacketData(buffer.Bytes())
-	fmt.Printf("send 1 packet\n\n")
 }
