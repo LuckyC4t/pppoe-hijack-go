@@ -7,10 +7,19 @@
 ## 用法
 
 ```bash
-git clone https://github.com/hammerorz/pppoe-hijack-go.git
+git clone https://github.com/LuckyC4t/pppoe-hijack-go.git
 cd pppoe-hijack-go
-go build main.go
-./main -i 网卡
-#例如
-./main -i eth0
+go build cmd/pppoe-hijack-go.go
+```
+
+### 列网卡
+
+```bash
+./pppoe-hijack-go -l
+```
+
+### 嗅探
+
+```bash
+./pppoe-hijack-go -i 网卡名
 ```
